@@ -22,11 +22,11 @@ const findAllBlogPosts = async (_req, res, next) => {
     const listBlogPosts = await model.BlogPost.findAll({
       include: [
         { model: model.User, as: 'user' },
-        { model: model.Categorie, as: 'categories' },
+        { model: model.Categorie, as: 'categories', through: { attributes: [] } },
       ],
     });
 
-    res.status(StatusCodes.OK).json(handleListBlogs(listBlogPosts));
+    res.status(StatusCodes.OK).json(listBlogPosts);
   } catch (error) {
     console.log(error);
     next({
