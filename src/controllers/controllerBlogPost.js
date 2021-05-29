@@ -1,3 +1,4 @@
+const { Op } = require('sequelize');
 const { StatusCodes } = require('http-status-codes');
 
 const model = require('../../models');
@@ -6,6 +7,41 @@ const service = require('../services');
 const findAllBlogPosts = async (_req, res, next) => {
   try {
     const listBlogPosts = await model.BlogPost.findAll({
+      include: [
+        { model: model.User, as: 'user' },
+        { model: model.Categorie, as: 'categories' },
+      ],
+    });
+
+    const result = listBlogPosts.map(post => {
+      const categories = post.categories.map(categorie => ({
+        id: categorie.id,
+        name: categorie.name,
+      }));
+      return { ...post.dataValues, categories };
+    });
+
+    res.status(StatusCodes.OK).json(result);
+  } catch (error) {
+    console.log(error);
+    next({
+      status: StatusCodes.NOT_FOUND,
+      message: error.message,
+    });
+  }
+};
+
+const findQueryBlogPosts = async (req, res, next) => {
+  try {
+    const { q } = req.query;
+    console.log(q, 'CHEGANDO');
+    const listBlogPosts = await model.BlogPost.findAll({
+      where: {
+        [Op.or]: [
+          { title: { [Op.like]: `%${q}%` } },
+          { content: { [Op.like]: `%${q}%` } },
+        ],
+      },
       include: [
         { model: model.User, as: 'user' },
         { model: model.Categorie, as: 'categories' },
@@ -102,9 +138,37 @@ const updatePost = async (req, res, next) => {
   }
 };
 
+const deletePost = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const post = await service.servicePost.findById(id);
+    if (req.userId !== post.userId) throw new Error('Unauthorized user');
+    const result = await model.BlogPost.destroy({
+      where: {
+        id: id,
+      },
+    });
+    res.status(StatusCodes.NO_CONTENT).json(result);
+  } catch (error) {
+    console.log(error);
+    if (error.message === 'Unauthorized user') {
+      return next({
+        status: StatusCodes.UNAUTHORIZED,
+        message: error.message,
+      });
+    }
+    next({
+      status: StatusCodes.NOT_FOUND,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   findAllBlogPosts,
+  findQueryBlogPosts,
   findByIdBlogPosts,
   createPost,
   updatePost,
+  deletePost,
 };

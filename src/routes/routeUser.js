@@ -2,8 +2,13 @@ const express = require('express');
 
 const { middlewareBody, middlewareAuth } = require('../middlewares');
 const { controllerUser } = require('../controllers');
-const { createUser, findAllUsers, createTokenLogin, findUserById } =
-  controllerUser;
+const {
+  createUser,
+  findAllUsers,
+  createTokenLogin,
+  findUserById,
+  deleteUserByToken,
+} = controllerUser;
 
 const User = express.Router();
 
@@ -16,5 +21,7 @@ User.use(middlewareAuth.validateToken);
 User.get('/user', findAllUsers);
 
 User.get('/user/:id', findUserById);
+
+User.delete('/user/me', deleteUserByToken);
 
 module.exports = User;

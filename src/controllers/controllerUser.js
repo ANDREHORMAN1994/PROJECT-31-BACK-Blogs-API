@@ -84,9 +84,27 @@ const createTokenLogin = async (req, res, next) => {
   }
 };
 
+const deleteUserByToken = async (req, res, next) => {
+  try {
+    const result = await model.User.destroy({
+      where: {
+        id: req.userId,
+      },
+    });
+    res.status(StatusCodes.NO_CONTENT).json(result);
+  } catch (error) {
+    console.log(error);
+    next({
+      status: StatusCodes.BAD_REQUEST,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   findAllUsers,
   findUserById,
   createUser,
   createTokenLogin,
+  deleteUserByToken,
 };
