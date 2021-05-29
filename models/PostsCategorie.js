@@ -1,20 +1,21 @@
 const definePostsCategorie = (sequelize, DataTypes) => {
   const PostsCategorie = sequelize.define(
     'PostsCategorie',
-    {
-      postId: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-      },
-      categoryId: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-      },
-    },
+    {},
     {
       timestamps: false,
     },
   );
+
+  PostsCategorie.associate = models => {
+    models.BlogPost.belongsToMany(models.Categorie, {
+      as: 'categories',
+      through: PostsCategorie,
+      foreignKey: 'postId',
+      otherKey: 'categoryId',
+    });
+  };
+
   return PostsCategorie;
 };
 
