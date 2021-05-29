@@ -1,12 +1,12 @@
 const model = require('../../models');
 
-const validateBodyCreateCategorie = name => {
+const validateBodyCreateCategorie = (name) => {
   if (!name) {
     throw new Error('"name" is required');
   }
 };
 
-const createNewCategorie = async name => {
+const createNewCategorie = async (name) => {
   validateBodyCreateCategorie(name);
 
   const newCategorie = await model.Categorie.create({ name });

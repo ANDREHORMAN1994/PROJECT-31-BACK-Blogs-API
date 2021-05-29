@@ -38,7 +38,7 @@ const createNewUser = async (displayName, email, password, image) => {
 
   const findUser = await model.User.findOne({
     where: {
-      email: email,
+      email,
     },
   });
   if (findUser) throw new Error('User already registered');
@@ -52,7 +52,7 @@ const createNewUser = async (displayName, email, password, image) => {
   // console.log(newUser);
   if (!newUser) throw new Error('"newUser" error to create');
 
-  return await createNewToken(email, password);
+  return createNewToken(email, password);
 };
 
 module.exports = {

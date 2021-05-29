@@ -4,6 +4,19 @@ const { StatusCodes } = require('http-status-codes');
 const model = require('../../models');
 const service = require('../services');
 
+const messageUnauthorized = 'Unauthorized user';
+
+const handleListBlogs = (list) => {
+  const result = list.map((post) => {
+    const categories = post.categories.map((categorie) => ({
+      id: categorie.id,
+      name: categorie.name,
+    }));
+    return { ...post.dataValues, categories };
+  });
+  return result;
+};
+
 const findAllBlogPosts = async (_req, res, next) => {
   try {
     const listBlogPosts = await model.BlogPost.findAll({
@@ -13,15 +26,7 @@ const findAllBlogPosts = async (_req, res, next) => {
       ],
     });
 
-    const result = listBlogPosts.map(post => {
-      const categories = post.categories.map(categorie => ({
-        id: categorie.id,
-        name: categorie.name,
-      }));
-      return { ...post.dataValues, categories };
-    });
-
-    res.status(StatusCodes.OK).json(result);
+    res.status(StatusCodes.OK).json(handleListBlogs(listBlogPosts));
   } catch (error) {
     console.log(error);
     next({
@@ -31,38 +36,31 @@ const findAllBlogPosts = async (_req, res, next) => {
   }
 };
 
+const handleQueryBlogPosts = async (q) => {
+  const listBlogPosts = await model.BlogPost.findAll({
+    where: {
+      [Op.or]: [
+        { title: { [Op.like]: `%${q}%` } },
+        { content: { [Op.like]: `%${q}%` } },
+      ],
+    },
+    include: [
+      { model: model.User, as: 'user' },
+      { model: model.Categorie, as: 'categories' },
+    ],
+  });
+  return listBlogPosts;
+};
+
 const findQueryBlogPosts = async (req, res, next) => {
   try {
     const { q } = req.query;
-    console.log(q, 'CHEGANDO');
-    const listBlogPosts = await model.BlogPost.findAll({
-      where: {
-        [Op.or]: [
-          { title: { [Op.like]: `%${q}%` } },
-          { content: { [Op.like]: `%${q}%` } },
-        ],
-      },
-      include: [
-        { model: model.User, as: 'user' },
-        { model: model.Categorie, as: 'categories' },
-      ],
-    });
-
-    const result = listBlogPosts.map(post => {
-      const categories = post.categories.map(categorie => ({
-        id: categorie.id,
-        name: categorie.name,
-      }));
-      return { ...post.dataValues, categories };
-    });
-
-    res.status(StatusCodes.OK).json(result);
+    const listBlogPosts = await handleQueryBlogPosts(q);
+    res.status(StatusCodes.OK).json(handleListBlogs(listBlogPosts));
   } catch (error) {
     console.log(error);
-    next({
-      status: StatusCodes.NOT_FOUND,
-      message: error.message,
-    });
+    next({ status: StatusCodes.NOT_FOUND,
+      message: error.message });
   }
 };
 
@@ -111,30 +109,31 @@ const createPost = async (req, res, next) => {
   }
 };
 
+const deleteKeysPost = (post) => {
+  const newPost = post;
+  delete newPost.id;
+  delete newPost.user;
+  delete newPost.published;
+  delete newPost.updated;
+  return newPost;
+};
+
 const updatePost = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { title, content } = req.body;
     if (req.body.categoryIds) throw new Error('Categories cannot be edited');
     const post = await service.servicePost.updateNewPost(id, title, content);
-    if (req.userId !== post.userId) throw new Error('Unauthorized user');
-    delete post.id;
-    delete post.user;
-    delete post.published;
-    delete post.updated;
-    res.status(StatusCodes.OK).json(post);
+    if (req.userId !== post.userId) throw new Error(messageUnauthorized);
+    res.status(StatusCodes.OK).json(deleteKeysPost(post));
   } catch (error) {
     console.log(error);
-    if (error.message === 'Unauthorized user') {
-      return next({
-        status: StatusCodes.UNAUTHORIZED,
-        message: error.message,
-      });
+    if (error.message === messageUnauthorized) {
+      return next({ status: StatusCodes.UNAUTHORIZED,
+        message: error.message });
     }
-    next({
-      status: StatusCodes.BAD_REQUEST,
-      message: error.message,
-    });
+    next({ status: StatusCodes.BAD_REQUEST,
+      message: error.message });
   }
 };
 
@@ -142,25 +141,18 @@ const deletePost = async (req, res, next) => {
   try {
     const { id } = req.params;
     const post = await service.servicePost.findById(id);
-    if (req.userId !== post.userId) throw new Error('Unauthorized user');
+    if (req.userId !== post.userId) throw new Error(messageUnauthorized);
     const result = await model.BlogPost.destroy({
-      where: {
-        id: id,
-      },
-    });
+      where: { id } });
     res.status(StatusCodes.NO_CONTENT).json(result);
   } catch (error) {
     console.log(error);
-    if (error.message === 'Unauthorized user') {
-      return next({
-        status: StatusCodes.UNAUTHORIZED,
-        message: error.message,
-      });
+    if (error.message === messageUnauthorized) {
+      return next({ status: StatusCodes.UNAUTHORIZED,
+        message: error.message });
     }
-    next({
-      status: StatusCodes.NOT_FOUND,
-      message: error.message,
-    });
+    next({ status: StatusCodes.NOT_FOUND,
+      message: error.message });
   }
 };
 

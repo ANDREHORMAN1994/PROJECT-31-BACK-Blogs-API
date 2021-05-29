@@ -1,5 +1,5 @@
-const model = require('../../models');
 const { StatusCodes } = require('http-status-codes');
+const model = require('../../models');
 
 const findAllPostsCategorie = async (_req, res, next) => {
   try {
@@ -10,10 +10,10 @@ const findAllPostsCategorie = async (_req, res, next) => {
     next({
       status: StatusCodes.NOT_FOUND,
       message: error.message,
-    })
+    });
   }
-}
+};
 
 module.exports = {
   findAllPostsCategorie,
-}
+};

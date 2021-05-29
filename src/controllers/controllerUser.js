@@ -6,14 +6,12 @@ const service = require('../services');
 const findAllUsers = async (_req, res, next) => {
   try {
     const listUsers = await model.User.findAll();
-    const resultUsers = listUsers.map(user => {
-      return {
+    const resultUsers = listUsers.map((user) => ({
         id: user.id,
         displayName: user.displayName,
         email: user.email,
         image: user.image,
-      };
-    });
+      }));
     res.status(StatusCodes.OK).json(resultUsers);
   } catch (error) {
     console.log(error);
@@ -49,19 +47,14 @@ const createUser = async (req, res, next) => {
   try {
     const { displayName, email, password, image } = req.body;
     const listUsers = await service.serviceUser.createNewUser(
-      displayName,
-      email,
-      password,
-      image,
-    );
+      displayName, email, password, image,
+);
     res.status(StatusCodes.CREATED).json(listUsers);
   } catch (error) {
     console.log(error);
     if (error.message === 'User already registered') {
-      return next({
-        status: StatusCodes.CONFLICT,
-        message: error.message,
-      });
+      return next({ status: StatusCodes.CONFLICT,
+        message: error.message });
     }
     next({
       status: StatusCodes.BAD_REQUEST,

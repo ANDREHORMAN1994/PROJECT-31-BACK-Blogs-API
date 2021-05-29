@@ -4,7 +4,7 @@ const model = require('../../models');
 
 const SECRET = process.env.SECRET || 'blogApi';
 
-const validateCreateLoginToken = async userEmail => {
+const validateCreateLoginToken = async (userEmail) => {
   const user = await model.User.findOne({
     where: {
       email: userEmail,
@@ -34,25 +34,19 @@ const validateToken = (req, _res, next) => {
   try {
     const { authorization } = req.headers;
     if (!authorization) throw new Error('Token not found');
-
     const decodedJWT = JWT.verify(authorization, SECRET);
     if (!decodedJWT) throw new Error('jwt malformed');
-
     const { id, email } = decodedJWT;
     req.userId = id;
     req.userEmail = email;
     next();
   } catch (error) {
     if (error.message === 'jwt malformed') {
-      next({
-        status: StatusCodes.UNAUTHORIZED,
-        message: 'Expired or invalid token',
-      });
+      next({ status: StatusCodes.UNAUTHORIZED,
+        message: 'Expired or invalid token' });
     }
-    next({
-      status: StatusCodes.UNAUTHORIZED,
-      message: error.message,
-    });
+    next({ status: StatusCodes.UNAUTHORIZED,
+      message: error.message });
   }
 };
 

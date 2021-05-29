@@ -2,6 +2,7 @@ const express = require('express');
 
 const { middlewareBody, middlewareAuth } = require('../middlewares');
 const { controllerUser } = require('../controllers');
+
 const {
   createUser,
   findAllUsers,
