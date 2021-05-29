@@ -12,7 +12,7 @@ const validateBodyCreateUser = (displayName, image) => {
   }
 
   if (displayName.length < 8) {
-    throw new Error('"displayName" length must be at least 8 chareacters long');
+    throw new Error('"displayName" length must be at least 8 characters long');
   }
 
   if (!image) {

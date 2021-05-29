@@ -86,7 +86,7 @@ const updatePost = async (req, res, next) => {
     delete post.user;
     delete post.published;
     delete post.updated;
-    res.status(StatusCodes.CREATED).json(post);
+    res.status(StatusCodes.OK).json(post);
   } catch (error) {
     console.log(error);
     if (error.message === 'Unauthorized user') {

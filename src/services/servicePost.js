@@ -8,7 +8,7 @@ const validateBodyCreatePost = (title, content, categoryId) => {
     throw new Error('"content" is required');
   }
   if (!categoryId) {
-    throw new Error('"categoryId" is required');
+    throw new Error('"categoryIds" is required');
   }
 };
 
